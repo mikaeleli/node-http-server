@@ -23,17 +23,15 @@ function processHeaders(rawHeaders: string[]): Headers {
   }, {});
 }
 
-function getQueries(rawQueries?: string): Record<string, string> {
+function processQueries(rawQueries?: string): Record<string, string> {
   if (!rawQueries) {
     return {};
   }
 
-  return (
-    rawQueries?.split("&").reduce<Record<string, string>>((acc, param) => {
-      const [key, value] = param.split("=");
-      return { ...acc, [key]: value };
-    }, {}) ?? {}
-  );
+  return rawQueries.split("&").reduce<Record<string, string>>((acc, param) => {
+    const [key, value] = param.split("=");
+    return { ...acc, [key]: value };
+  }, {});
 }
 
 export const processRequest = (rawRequest: Buffer): HttpRequest => {
@@ -45,12 +43,11 @@ export const processRequest = (rawRequest: Buffer): HttpRequest => {
 
   const [method, path, httpVersion] = requestLine.split(CHARACTER_SET.SP);
 
-  const { route, rawQueries } = processPath(path);
-
   assertHttpMethod(method);
 
+  const { route, rawQueries } = processPath(path);
   const headers = processHeaders(rawHeaders);
-  const queries = getQueries(rawQueries);
+  const queries = processQueries(rawQueries);
 
   return {
     method,
