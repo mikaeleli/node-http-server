@@ -32,4 +32,5 @@ export type HttpRequest = {
   httpVersion: string;
   headers: Headers;
   body?: string;
+  queries: Record<string, string>;
 };

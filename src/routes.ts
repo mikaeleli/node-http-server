@@ -129,7 +129,7 @@ const handleAssetsRoute = handleRequest((request, socket) => {
 
 const handleApi = handleRequest((request, socket) => {
   json(socket, request, {
-    hello: "world",
+    message: `Hello to ${request.queries.name || "you, our nameless overlord,"} from the server!`,
   });
 });
 
