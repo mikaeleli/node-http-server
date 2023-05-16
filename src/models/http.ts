@@ -33,4 +33,5 @@ export type HttpRequest = {
   headers: Headers;
   body?: string;
   queries: Record<string, string>;
+  cookies: Record<string, string>;
 };

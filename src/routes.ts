@@ -3,6 +3,8 @@ import { HTTPMethod, HttpRequest } from "./models/http";
 import { createResponse, internalErrorResponse } from "./models/http-response";
 import { readAsset, readHTML } from "./services/filesystem";
 
+const SUPER_SECRET_AUTH = "super-secret-auth";
+
 type RequestHandler = (request: HttpRequest, socket: net.Socket) => void;
 
 const defaultErrorHandler =
@@ -129,7 +131,73 @@ const handleAssetsRoute = handleRequest((request, socket) => {
 
 const handleApi = handleRequest((request, socket) => {
   json(socket, request, {
-    message: `Hello to ${request.queries.name || "you, our nameless overlord,"} from the server!`,
+    message: `Hello to ${
+      request.queries.name || "you, our nameless overlord,"
+    } from the server!`,
+  });
+});
+
+const handleLoginRoute = handleRequest((request, socket) => {
+  console.log({ cookies: request.cookies });
+
+  readHTML("login.html", {
+    onError: defaultErrorHandler(socket, request.method),
+    onSuccess: (data) => {
+      socket.write(
+        createResponse({
+          requestMethod: request.method,
+          statusCode: 200,
+          httpVersion: "HTTP/1.0",
+          headers: {
+            "Content-Type": "text/html",
+          },
+          cookies: [
+            {
+              name: "super-secret-cookie",
+              value: SUPER_SECRET_AUTH,
+            },
+          ],
+          body: data,
+        })
+      );
+    },
+  });
+});
+
+const handleRestricedRoute = handleRequest((request, socket) => {
+  const isLoggedIn =
+    request.cookies["super-secret-cookie"] === SUPER_SECRET_AUTH;
+
+  if (!isLoggedIn) {
+    // redirect to login
+    socket.write(
+      createResponse({
+        requestMethod: request.method,
+        statusCode: 302,
+        headers: {
+          // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location
+          Location: "/login",
+        },
+        httpVersion: "HTTP/1.0",
+      })
+    );
+  }
+
+  readHTML("restricted.html", {
+    onError: defaultErrorHandler(socket, request.method),
+    onSuccess: (data) => {
+      socket.write(
+        createResponse({
+          requestMethod: request.method,
+          statusCode: 200,
+          httpVersion: "HTTP/1.0",
+          headers: {
+            "Content-Type": "text/html",
+          },
+          body: data,
+        })
+      );
+    },
   });
 });
 
@@ -139,4 +207,6 @@ export const routes = {
   assets: handleAssetsRoute,
   notFound: handleNotFoundRoute,
   api: handleApi,
+  login: handleLoginRoute,
+  restricted: handleRestricedRoute,
 } as const;

@@ -38,10 +38,11 @@ export type CreateResponse = {
   httpVersion: string;
   headers: Headers;
   body?: string | Buffer;
+  cookies?: Array<{name: string; value: string; expirationDate?: Date}>;
 };
 
 export const createResponse = (options: CreateResponse): Buffer => {
-  const { statusCode, httpVersion, headers, body, requestMethod } = options;
+  const { statusCode, httpVersion, headers, body, requestMethod, cookies } = options;
 
   const frames: Array<string> = [];
 
@@ -56,12 +57,25 @@ export const createResponse = (options: CreateResponse): Buffer => {
 
   const responseHeaders: Headers = createResponseHeaders(
     headers,
-    shouldProcessBody ? Buffer.byteLength(body) : null
+    body ? Buffer.byteLength(body) : null
   );
 
   for (const [headerName, headerValue] of Object.entries(responseHeaders)) {
     frames.push([headerName, headerValue].join(HEADER_KEY_VALUE_SEPARATOR));
   }
+
+  cookies?.forEach((cookie) => {
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+    const cookieAttributes: Array<string> = [`${cookie.name}=${cookie.value}`];
+    if (cookie.expirationDate !== undefined) {
+      cookieAttributes.push(`Expires=${cookie.expirationDate.toUTCString()}`)
+    }
+    cookieAttributes.push("SameSite=Strict")
+    cookieAttributes.push("HttpOnly")
+    cookieAttributes.push("Secure")
+    const cookieString = `Set-Cookie: ` + cookieAttributes.join(";");
+    frames.push(cookieString);
+  })
 
   // add empty string, will be replaced with \r\n (CRLF)
   // this will seperate the headers from the body

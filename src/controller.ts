@@ -18,6 +18,12 @@ export const controller = (request: HttpRequest, socket: net.Socket): void => {
     case "/dad-jokes":
       return routes.dadJokes(request, socket);
 
+    case "/login":
+      return routes.login(request, socket);
+
+    case "/restricted":
+      return routes.restricted(request, socket);
+
     default:
       return routes.notFound(request, socket);
   }

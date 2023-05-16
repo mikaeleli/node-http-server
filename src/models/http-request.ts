@@ -34,12 +34,28 @@ function processQueries(rawQueries?: string): Record<string, string> {
   }, {});
 }
 
+function processCookies(rawCookies: string | undefined): Record<string, string> {
+  if (!rawCookies) {
+    return {};
+  }
+
+  const items = rawCookies.slice("Cookie: ".length).split(";");
+
+  return items.reduce<Record<string, string>>((acc, cookie) => {
+    const [cookieName, cookieValue] = cookie.trim().split("=");
+    return { ...acc, [cookieName]: cookieValue };
+  }, {});
+}
+
 export const processRequest = (rawRequest: Buffer): HttpRequest => {
   const [request, body] = rawRequest
     .toString()
     .split(HEADER_AND_BODY_SEPARATOR);
 
-  const [requestLine, ...rawHeaders] = request.split(CHARACTER_SET.CRLF);
+  const [requestLine, ...rawMetadata] = request.split(CHARACTER_SET.CRLF);
+
+  const rawHeaders = rawMetadata.filter((line) => !line.startsWith("Cookie:"));
+  const rawCookies: string | undefined = rawMetadata.filter((line) => line.startsWith("Cookie:"))[0];
 
   const [method, path, httpVersion] = requestLine.split(CHARACTER_SET.SP);
 
@@ -48,6 +64,7 @@ export const processRequest = (rawRequest: Buffer): HttpRequest => {
   const { route, rawQueries } = processPath(path);
   const headers = processHeaders(rawHeaders);
   const queries = processQueries(rawQueries);
+  const cookies = processCookies(rawCookies);
 
   return {
     method,
@@ -56,5 +73,6 @@ export const processRequest = (rawRequest: Buffer): HttpRequest => {
     headers,
     body,
     queries,
+    cookies,
   };
 };
