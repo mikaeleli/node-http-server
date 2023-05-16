@@ -10,9 +10,11 @@
   "devDependencies": {
     "@types/node": "^18.15.11",
     "nodemon": "^2.0.22",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "vitest": "^0.31.0"
   },
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec node -r ts-node/register src/index.ts"
+    "dev": "nodemon --watch src --ext ts --exec node -r ts-node/register src/index.ts",
+    "test": "vitest"
   }
 }
