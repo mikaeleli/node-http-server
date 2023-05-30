@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { math } from "./evaluate.ts.js";
+import { math } from "./evaluate";
 
 describe(math.name, () => {
   test("16", () => {

@@ -1,5 +1,8 @@
 import { Token, MathTokenizer } from "./tokenizer";
 
+// Recursive descent parser
+// https://en.wikipedia.org/wiki/Recursive_descent_parser
+// Code based on: https://dmitrysoshnikov.teachable.com/p/parser-from-scratch
 export class MathParser {
   private tokenizer: MathTokenizer;
   private lookahead: Token | null = null;
@@ -36,16 +39,21 @@ export class MathParser {
     return this.Expression();
   }
 
-  private Expression() {
+  private Expression(): Expression {
     return this.Addition();
   }
 
   private BinaryExpression(
-    expressionBuilder: () => BinaryExpression,
+    expressionBuilder: () => Expression,
     operatorToken: "ADDITION_OPERATOR" | "MULTIPLICATION_OPERATOR"
   ) {
+    // left is either a NumberLiteral or a BinaryExpression
     let left = expressionBuilder();
 
+    // Recursively build up the BinaryExpression while the lookahead matches with the operatorToken
+    // This is how we handle the order of operations
+    // For example, 1 + 2 * 3 will be parsed as 1 + (2 * 3)
+    // And 1 + 2 * 3 + 4 will be parsed as (1 + (2 * 3)) + 4
     while (this.lookahead?.type === operatorToken) {
       const operator = this.eat(operatorToken).value;
       const right = expressionBuilder();
@@ -61,14 +69,16 @@ export class MathParser {
     return left;
   }
 
-  private Addition(): BinaryExpression {
+  // Multiplication has higher priority (in the order of operations) than addition, therefore, we call Multiplication first
+  // This ensures that the Multiplication is evaluated first
+  private Addition(): Expression {
     return this.BinaryExpression(
       () => this.Multiplication(),
       "ADDITION_OPERATOR"
     );
   }
 
-  private Multiplication(): BinaryExpression {
+  private Multiplication(): Expression {
     return this.BinaryExpression(
       () => this.PrimaryExpression(),
       "MULTIPLICATION_OPERATOR"
@@ -88,7 +98,7 @@ export class MathParser {
     }
   }
 
-  private ParenthesizedExpression(): BinaryExpression {
+  private ParenthesizedExpression(): Expression {
     this.eat("(");
     const expression = this.Expression();
     this.eat(")");
@@ -111,11 +121,11 @@ type NumberLiteral = {
   value: number;
 };
 
-export type BinaryExpression =
-  | {
-      type: "BinaryExpression";
-      left: BinaryExpression | NumberLiteral;
-      right: BinaryExpression | NumberLiteral;
-      operator: "+" | "-" | "*" | "/";
-    }
-  | NumberLiteral;
+type Expression = BinaryExpression | NumberLiteral;
+
+export type BinaryExpression = {
+  type: "BinaryExpression";
+  left: BinaryExpression | NumberLiteral;
+  right: BinaryExpression | NumberLiteral;
+  operator: "+" | "-" | "*" | "/";
+};
