@@ -138,8 +138,6 @@ const handleApi = handleRequest((request, socket) => {
 });
 
 const handleLoginRoute = handleRequest((request, socket) => {
-  console.log({ cookies: request.cookies });
-
   readHTML("login.html", {
     onError: defaultErrorHandler(socket, request.method),
     onSuccess: (data) => {

@@ -34,8 +34,6 @@ export class JsonParser {
 
     this.lookahead = this.tokenizer.getNext();
 
-    console.log("returning token", token);
-
     return token as Token & { type: T };
   }
 
@@ -81,7 +79,6 @@ export class JsonParser {
   }
 
   private Array() {
-    console.log("PARSER: ARRAY");
     this.eat("[");
 
     const items: unknown[] = [];

@@ -40,8 +40,6 @@ export function simpleStringMath(input: string) {
   let a: number | undefined = undefined;
   let b: number | undefined = undefined;
 
-  console.log({ nodes });
-
   nodes.forEach((node) => {
     if (operators.includes(node)) {
       nextOperation = operations[node];
@@ -57,10 +55,6 @@ export function simpleStringMath(input: string) {
     result = nextOperation!(a, b);
     a = result;
     nextOperation = undefined;
-    console.log("a", a);
-    console.log("b", b);
-    console.log("nextOperation", nextOperation);
-    console.log("result", result);
   });
 
   return result;
@@ -87,13 +81,10 @@ export function mathLexer(input: string): MathToken[] {
   const tokens: MathToken[] = [];
 
   input = input.replace(/\s/g, "");
-  console.log("[mathLexer] input", input);
 
-  
   for (let index = 0; index < input.length; index++) {
     const char = input[index].trim();
-    console.log(`[mathLexer] processing: "${char}"`);
-    
+
     if (Number.isInteger(Number(char))) {
       let numberBuilder = char;
       let searchIndex = index + 1;
@@ -133,18 +124,10 @@ export function mathLexer(input: string): MathToken[] {
             // we found the matching parenthesis
             // slice off the parenthesis
             const nestedEquation = slicedInput.slice(1, searchIndex);
-            console.log("nested equation", { nestedEquation });
             const nestedTokens = mathLexer(nestedEquation);
-            console.log("nested tokens", { nestedTokens });
             tokens.push({ type: "nested", nestedTokens });
-            console.log(
-              `setting index to ${index + searchIndex} which is "${input.slice(
-                index + searchIndex
-              )}"`
-            );
-            console.log("index before", index);
+
             index += searchIndex;
-            console.log("index after", index);
             break;
           }
         }
@@ -162,16 +145,25 @@ export function mathLexer(input: string): MathToken[] {
     throw new Error(`Invalid character: ${char}`);
   }
 
-  console.log("[mathLexer] tokens returned", tokens);
-
   return tokens;
 }
 
 // Use this function in the future, reduces the boilerplate in calculator
-function performOperation({result, nextNumber, operation}: {result?: number, nextNumber: number, operation?: MathOperation}) {
+function performOperation({
+  result,
+  nextNumber,
+  operation,
+}: {
+  result?: number;
+  nextNumber: number;
+  operation?: MathOperation;
+}) {
   if (result === undefined) return nextNumber;
 
-  if (!operation) throw new Error(`Invalid state: ${JSON.stringify({result, b: nextNumber, operation})}`);
+  if (!operation)
+    throw new Error(
+      `Invalid state: ${JSON.stringify({ result, b: nextNumber, operation })}`
+    );
 
   return operation(result, nextNumber);
 }
@@ -181,24 +173,18 @@ function calculator(tokens: Array<MathToken>): number {
   let nextOperation: MathOperation | undefined = undefined;
   let result: number | undefined = undefined;
 
-  console.log("[calculator]: got props:", { tokens });
-
-
   // if we only have one token and it's a number, return it
   // handles cases like (1)
-  if (tokens.length === 1 && tokens[0].type === "number") return Number(tokens[0].value);
+  if (tokens.length === 1 && tokens[0].type === "number")
+    return Number(tokens[0].value);
 
   tokens.forEach((token) => {
-    console.log("[calculator] processing token: ", { token, nextOperation, result });
-
     switch (token.type) {
       case "nested":
         if (result === undefined) {
-          console.log("assigning result to nested tokens")
           result = calculator(token.nestedTokens);
           break;
         }
-        console.log("calculating nested tokens")
         if (!nextOperation)
           throw new Error(`Invalid state: ${JSON.stringify(token)}`);
 
@@ -220,19 +206,13 @@ function calculator(tokens: Array<MathToken>): number {
       default:
         break;
     }
-
-    console.log("[calculator]: result is now:", { result, nextOperation });
   });
-
 
   return result!;
 }
 
 export function complexMath(input: string) {
-  console.log("complet math input: ", input);
   const tokens = mathLexer(input);
-
-  console.log({ tokens });
 
   return calculator(tokens);
 }

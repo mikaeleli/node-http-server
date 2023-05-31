@@ -30,10 +30,8 @@ describe(MathTokenizer.name, () => {
     ]);
   });
 
-  test.only("18 + 24 / (1 - 54)", () => {
+  test("18 + 24 / (1 - 54)", () => {
     const tokens = getAllTokens("18 + 24 / (1 - 54)");
-
-    console.log({tokens});
 
     expect(tokens).toEqual([
       {
