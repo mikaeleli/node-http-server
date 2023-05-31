@@ -4,17 +4,6 @@ import path from "path";
 const publicFolderPath = path.join(process.cwd(), "public");
 const assetsFolderPath = path.join(publicFolderPath, "assets");
 
-// export function readHTML(
-//   fileName: string,
-//   callback: (error: NodeJS.ErrnoException | null, data: string) => void
-// ): void {
-//   fs.readFile(
-//     path.join(publicFolderPath, fileName),
-//     { encoding: "utf-8" },
-//     callback
-//   );
-// }
-
 export function readHTML(
   fileName: string,
   handlers: {onSuccess: (data: string) => void; onError: (error: NodeJS.ErrnoException) => void}
